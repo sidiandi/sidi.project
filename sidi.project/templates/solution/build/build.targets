@@ -18,6 +18,7 @@ along with sidi-util. If not, see <http://www.gnu.org/licenses/>.-->
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
   <Import Project="$(BuildDir)\obj\nuget.props" />
+  <Import Project="PackNugetToolPackage.task" />
   
   <PropertyGroup>
     <Configuration>Release</Configuration>
@@ -72,6 +73,9 @@ along with sidi-util. If not, see <http://www.gnu.org/licenses/>.-->
     <MSBuild Projects="$(SourceDir)\$(ProductName).sln" Properties="Configuration=$(Configuration);Platform=$(Platform);BuildDir=$(BuildDir);Version=$(GfvNuGetVersion)" >
       <Output ItemName="Targets" TaskParameter="TargetOutputs" />
     </MSBuild>
+	<Message Importance="high" Text="%(Targets.Identity)" />
+	<Message Importance="high" Text="%(Targets.MSBuildSourceTargetName)" />
+	<Message Importance="high" Text="%(Targets.MSBuildSourceProjectFile)" />
   </Target>
 
   <Target Name="Setup" DependsOnTargets="Build;BuildSetup">
@@ -111,21 +115,31 @@ along with sidi-util. If not, see <http://www.gnu.org/licenses/>.-->
     <Exec Command="&quot;$(NUnitConsole)&quot; --labels=On --work=&quot;$(TestDir)&quot; --result=&quot;$(TestDir)\TestResult.xml&quot; --labels=All @(TestTargets -> '&quot;%(Identity)&quot;', ' ')" />
   </Target>
 
-  <Target Name="PackNugetPackages" DependsOnTargets="Build" Condition="'@(Package)'!=''" >
+  <Target Name="PackNugetPackages" DependsOnTargets="Build" >
     <PropertyGroup>
-		<PackageDir>$(BuildDir)\package</PackageDir>
+		<PackageDir>$(BuildDir)\nuget</PackageDir>
 	</PropertyGroup>
-	<RemoveDir Directories="$(PackageDir)"/>
 	<MakeDir Directories="$(PackageDir)" />
-	<Exec WorkingDirectory="$(ReleaseDir)" Command="&quot;$(Nuget)&quot; pack &quot;$(SourceDir)\%(Package.Identity)\%(Package.Identity).csproj&quot; -OutputDirectory &quot;$(PackageDir)&quot; -Version $(GfvNuGetVersion)" />
-	<ItemGroup>
-		<PackageFiles Include="$(PackageDir)\%(Package.Identity).$(GfvNuGetVersion).nupkg" />
-	</ItemGroup>
+	<Exec WorkingDirectory="$(ReleaseDir)" Command="&quot;$(Nuget)&quot; pack -Tool &quot;%(Targets.MSBuildSourceProjectFile)&quot; -OutputDirectory &quot;$(PackageDir)&quot; -Version $(GfvNuGetVersion)" />
+  </Target>
+
+  <Target Name="PackChocolateyPackages" DependsOnTargets="Build" >
+    <PropertyGroup>
+		<ChocolateyDir>$(BuildDir)\Chocolatey</ChocolateyDir>
+	</PropertyGroup>
+	<PackNugetToolPackage Source="%(Targets.Identity)" OutputDirectory="$(ChocolateyDir)" Version="$(GfvNuGetVersion)" >
+      <Output ItemName="ChocolateyPackages" TaskParameter="PackageFile" />
+	</PackNugetToolPackage>
+  </Target>
+
+  <!-- Push chocolatey packages to feed -->
+  <Target Name="PushChocolateyPackages" DependsOnTargets="Test;PackChocolateyPackages" >
+    <Exec WorkingDirectory="$(ReleaseDir)" Command="&quot;$(Nuget)&quot; push &quot;%(ChocolateyPackages.Identity)&quot; -Source $(ChocolateyFeed)" />
   </Target>
 
   <!-- Push nuget packages to feed -->
-  <Target Name="PushNugetPackages" DependsOnTargets="Test;PackNugetPackages"  Condition="'@(Package)'!=''" >
-    <Exec WorkingDirectory="$(ReleaseDir)" Command="&quot;$(Nuget)&quot; push &quot;%(PackageFiles.Identity)&quot; -ApiKey $(NugetApiKey) -Source $(NugetFeed)" />
+  <Target Name="PushNugetPackages" DependsOnTargets="Test;PackNugetPackages" >
+    <Exec Condition="'@(PackageFiles)' != ''" WorkingDirectory="$(ReleaseDir)" Command="&quot;$(Nuget)&quot; push &quot;%(PackageFiles.Identity)&quot; -ApiKey $(NugetApiKey) -Source $(NugetFeed)" />
   </Target>
 
   <Target Name="Install" DependsOnTargets="Setup">
@@ -156,6 +170,6 @@ along with sidi-util. If not, see <http://www.gnu.org/licenses/>.-->
     <RemoveDir Directories="$(BuildDir)" />
   </Target>
 
-  <Target Name="Release" DependsOnTargets="Test;Setup;Tag;PublishOnDropbox;PublishStageOnDropbox;PushNugetPackages" />
+  <Target Name="Release" DependsOnTargets="Test;Setup;Tag;PublishOnDropbox;PublishStageOnDropbox;PushNugetPackages;PushChocolateyPackages" />
   
 </Project>

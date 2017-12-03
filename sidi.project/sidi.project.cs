@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace sidi.project
 {
-    public class Project
+    public class Project : IArgumentHandler
     {
         public static int Main(string[] args)
         {
@@ -91,6 +91,11 @@ namespace sidi.project
             };
             p.Start();
             p.WaitForExit();
+        }
+
+        public void ProcessArguments(string[] args)
+        {
+            throw new NotImplementedException();
         }
     }
 }

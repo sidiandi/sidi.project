@@ -12,6 +12,7 @@
   </ItemGroup>
   
   <PropertyGroup>
+	<ChocolateyFeed>C:\Users\andreas\Dropbox\Chocolatey</ChocolateyFeed>
     <GITHUB_REPO>$(ProductName)</GITHUB_REPO>
   </PropertyGroup>
 
