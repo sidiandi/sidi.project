@@ -123,10 +123,6 @@ along with sidi-util. If not, see <http://www.gnu.org/licenses/>.-->
 	</ItemGroup>
   </Target>
 
-  <Target Name="TestNugetPackages" DependsOnTargets="PackNugetPackages">
-	<Exec WorkingDirectory="$(SourceDir)" Command="powershell &quot;sidi.project-package.Test\test.ps1&quot;" />
-  </Target>
-
   <!-- Push nuget packages to feed -->
   <Target Name="PushNugetPackages" DependsOnTargets="Test;PackNugetPackages">
     <Exec WorkingDirectory="$(ReleaseDir)" Command="&quot;$(Nuget)&quot; push &quot;%(PackageFiles.Identity)&quot; -ApiKey $(NugetApiKey) -Source $(NugetFeed)" />

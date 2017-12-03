@@ -4,9 +4,12 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace sidi.project
+namespace _Namespace_
 {
-    public class Class1
+    class _ProductName_
     {
+        static void Main(string[] args)
+        {
+        }
     }
 }

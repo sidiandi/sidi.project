@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<package >
+  <metadata>
+    <id>sidi.project</id>
+    <version>0.1.0</version>
+    <authors>sidiandi</authors>
+    <owners>sidiandi</owners>
+    <licenseUrl>https://opensource.org/licenses/BSD-3-Clause</licenseUrl>
+    <projectUrl>https://github.com/sidiandi/sidi.project</projectUrl>
+    <iconUrl>https://github.com/sidiandi/sidi.project/icon.ico</iconUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>Project template for C# solutions</description>
+    <releaseNotes>Initial version</releaseNotes>
+    <copyright>Copyright 2017 https://github.com/sidiandi</copyright>
+    <tags></tags>
+    <dependencies>
+    </dependencies>
+  </metadata>
+	<files>
+		<file src="..\out\Release\sidi.project\bin\**\*" target="tools" />
+		<file src="init.ps1" target="tools\init.ps1" />
+	</files>
+</package>

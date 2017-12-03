@@ -8,7 +8,7 @@
   </PropertyGroup>
   
   <ItemGroup>
-    <Package Include="sidi.project-package" />
+    <Package Include="sidi.project" />
   </ItemGroup>
   
   <!-- define secret project properties in a private .props file. See build/api_key_example.props for an example -->

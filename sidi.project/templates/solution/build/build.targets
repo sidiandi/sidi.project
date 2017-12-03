@@ -111,44 +111,36 @@ along with sidi-util. If not, see <http://www.gnu.org/licenses/>.-->
     <Exec Command="&quot;$(NUnitConsole)&quot; --labels=On --work=&quot;$(TestDir)&quot; --result=&quot;$(TestDir)\TestResult.xml&quot; --labels=All @(TestTargets -> '&quot;%(Identity)&quot;', ' ')" />
   </Target>
 
-  <Target Name="PackNugetPackages" DependsOnTargets="Build">
+  <Target Name="PackNugetPackages" DependsOnTargets="Build" Condition="'@(Package)'!=''" >
     <PropertyGroup>
 		<PackageDir>$(BuildDir)\package</PackageDir>
 	</PropertyGroup>
 	<RemoveDir Directories="$(PackageDir)"/>
 	<MakeDir Directories="$(PackageDir)" />
-	<Exec WorkingDirectory="$(ReleaseDir)" Command="&quot;$(Nuget)&quot; pack &quot;$(SourceDir)\%(Package.Identity)&quot; -OutputDirectory &quot;$(PackageDir)&quot; -Version $(GfvNuGetVersion)" />
+	<Exec WorkingDirectory="$(ReleaseDir)" Command="&quot;$(Nuget)&quot; pack &quot;$(SourceDir)\%(Package.Identity)\%(Package.Identity).csproj&quot; -OutputDirectory &quot;$(PackageDir)&quot; -Version $(GfvNuGetVersion)" />
 	<ItemGroup>
 		<PackageFiles Include="$(PackageDir)\%(Package.Identity).$(GfvNuGetVersion).nupkg" />
 	</ItemGroup>
   </Target>
 
-  <Target Name="TestNugetPackages" DependsOnTargets="PackNugetPackages">
-	<Exec WorkingDirectory="$(SourceDir)" Command="powershell &quot;sidi.project-package.Test\test.ps1&quot;" />
-  </Target>
-
   <!-- Push nuget packages to feed -->
-  <Target Name="PushNugetPackages" DependsOnTargets="Test;PackNugetPackages">
+  <Target Name="PushNugetPackages" DependsOnTargets="Test;PackNugetPackages"  Condition="'@(Package)'!=''" >
     <Exec WorkingDirectory="$(ReleaseDir)" Command="&quot;$(Nuget)&quot; push &quot;%(PackageFiles.Identity)&quot; -ApiKey $(NugetApiKey) -Source $(NugetFeed)" />
   </Target>
 
-  <Target Name="Run" DependsOnTargets="Build">
-	<Exec Command="$(OutDir)\hagen.exe Popup" />
-  </Target>
-  
   <Target Name="Install" DependsOnTargets="Setup">
     <Exec Command="&quot;@(SetupFiles, ' ')&quot;" />
   </Target>
   
   <Target Name="PublishOnDropbox" DependsOnTargets="Setup" >
-    <Copy SourceFiles="@(SetupFiles)" DestinationFolder="$(USERPROFILE)\Dropbox\hagen\setup" />
+    <Copy SourceFiles="@(SetupFiles)" DestinationFolder="$(USERPROFILE)\Dropbox\app\$(ProductName)" />
   </Target>
   
   <Target Name="PublishStageOnDropbox" DependsOnTargets="Setup" >
     <ItemGroup>
 		<StageFiles Include="$(StageDir)/**/*" />
 	</ItemGroup>
-	<Copy SourceFiles="@(StageFiles)" DestinationFolder="$(USERPROFILE)\Dropbox\hagen\bin\%(RecursiveDir)" />
+	<Copy SourceFiles="@(StageFiles)" DestinationFolder="$(USERPROFILE)\Dropbox\app\$(ProductName)\bin\%(RecursiveDir)" />
   </Target>
   
   <Target Name="PublishAsGithubRelease" DependsOnTargets="Setup" >

@@ -5,7 +5,7 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("sidi.project")]
+[assembly: AssemblyTitle("_TestProjectName_")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyTrademark("")]
@@ -17,6 +17,4 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("b10c8655-5ddf-41d4-957f-9e1c503dc04b")]
-
-[assembly: InternalsVisibleTo("sidi.project.Test")]
+[assembly: Guid("_TestAssemblyGuid_")]
