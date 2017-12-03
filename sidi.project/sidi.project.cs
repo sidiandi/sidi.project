@@ -37,6 +37,12 @@ namespace sidi.project
             }
         }
 
+        [Usage("Specify the product name. ")]
+        public string Product { get; set; }
+
+        [Usage("Specify the company.")]
+        public string Company { get; set; }
+
         LPath _ProjectDirectory;
 
         [Usage("Initialize the project directory")]
@@ -47,9 +53,9 @@ namespace sidi.project
 
             var d = new Dictionary<string, string>
             {
-                { "ProductName", "MyProduct" },
-                { "CompanyName", "ACME" },
-                { "CopyrightMessage", "Copyright 2017 by ACME" },
+                { "ProductName", Product },
+                { "CompanyName", Company },
+                { "CopyrightMessage", String.Format("Copyright {0} by {1}", DateTime.Now.Year, Company) },
             };
 
             foreach (var k in new[] {
@@ -95,7 +101,6 @@ namespace sidi.project
 
         public void ProcessArguments(string[] args)
         {
-            throw new NotImplementedException();
         }
     }
 }

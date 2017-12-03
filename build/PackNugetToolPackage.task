@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <UsingTask  
+    TaskName="PackNugetToolPackage"  
+    TaskFactory="CodeTaskFactory"  
+    AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.v12.0.dll" >  
+    <ParameterGroup>  
+      <Source Required="true" />
+	  <OutputDirectory Required="true" />
+	  <Version Required="true" />
+	  <PackageFile Output="true" />
+    </ParameterGroup>  
+    <Task>  
+      <Reference Include="System" />
+      <Reference Include="System.Xml" />
+      <Reference Include="System.Xml.Linq" />  
+      <Using Namespace="System.Xml.Linq" />  
+      <Using Namespace="System.Text.RegularExpressions" />  
+      <Code Type="Fragment" Language="cs"><![CDATA[  
+
+if (!System.String.Equals(".exe", Path.GetExtension(Source)))
+{
+	return true;
+}
+	  
+var nuspecFile = Path.Combine(Source, "..", "..", "obj", "tool.nuspec");
+var Id = Path.GetFileNameWithoutExtension(Source);
+using (var w = new StreamWriter(nuspecFile))
+{
+	w.WriteLine(@"<?xml version=""1.0""?>
+<package >
+  <metadata>
+    <id>" + Id + @"</id>
+    <version>" + Version + @"</version>
+    <authors>sidiandi</authors>
+    <owners>sidiandi</owners>
+    <licenseUrl>https://opensource.org/licenses/BSD-3-Clause</licenseUrl>
+    <projectUrl>https://github.com/sidiandi/sidi.project</projectUrl>
+    <iconUrl>https://github.com/sidiandi/sidi.project/icon.ico</iconUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>Tool</description>
+    <releaseNotes></releaseNotes>
+    <copyright>Copyright 2017 https://github.com/sidiandi</copyright>
+    <tags></tags>
+    <dependencies>
+    </dependencies>
+  </metadata>
+	<files>
+		<file src=""..\bin\**\*"" target=""tools"" />
+	</files>
+</package>
+
+");	
+	
+}
+Console.WriteLine(nuspecFile);
+
+var Quote = new Func<string, string>(s =>
+{
+	return "\"" + s + "\"";
+});
+
+var nuget = new System.Diagnostics.Process
+	{
+		StartInfo =  new System.Diagnostics.ProcessStartInfo
+		{
+			FileName = "nuget.exe",
+			Arguments = "pack " + Quote(nuspecFile),
+			CreateNoWindow = true,
+			UseShellExecute = false,
+			WorkingDirectory = OutputDirectory,
+		}
+	};
+
+if (!Directory.Exists(OutputDirectory))
+{
+	Directory.CreateDirectory(OutputDirectory);
+}
+	
+nuget.Start();
+nuget.WaitForExit();
+PackageFile = Path.Combine(OutputDirectory, Id + "." + Version + ".nupkg");
+Console.WriteLine("Created tool package {0}", PackageFile);
+
+      ]]></Code>  
+    </Task>  
+  </UsingTask>  
+
+</Project>
