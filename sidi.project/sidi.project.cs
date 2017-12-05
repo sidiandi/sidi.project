@@ -14,6 +14,8 @@ namespace sidi.project
 {
     public class Project : IArgumentHandler
     {
+        private static readonly log4net.ILog log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         public static int Main(string[] args)
         {
             return GetOpt.Run(new Project(), args);
@@ -45,11 +47,33 @@ namespace sidi.project
 
         LPath _ProjectDirectory;
 
-        [Usage("Initialize the project directory")]
-        public void Init()
+        static void Init(LPath destination, string Product, string Company)
         {
+            if (destination == null)
+            {
+                throw new ArgumentNullException(nameof(destination));
+            }
+
+            if (string.IsNullOrEmpty(Product))
+            {
+                throw new ArgumentException("message", nameof(Product));
+            }
+
+            if (Company == null)
+            {
+                throw new ArgumentNullException(nameof(Company));
+            }
+
             var source = Paths.BinDir.CatDir("templates", "solution");
-            var destination = ProjectDirectory;
+
+            log.InfoFormat("Create project from template {0} in {1}", source, destination);
+
+            destination.EnsureDirectoryExists();
+
+            if (destination.Children.Any())
+            {
+                throw new Exception("Cannot create project in non-empty directory");
+            }
 
             var d = new Dictionary<string, string>
             {
@@ -99,8 +123,30 @@ namespace sidi.project
             p.WaitForExit();
         }
 
+        string GuessProduct(string productProperty, LPath dest)
+        {
+            if (String.IsNullOrEmpty(productProperty))
+            {
+                return dest.FileNameWithoutExtension;
+            }
+            return productProperty;
+        }
+
+        string GuessCompany(string companyProperty)
+        {
+            if (String.IsNullOrEmpty(companyProperty))
+            {
+                return LPath.GetValidFilename(Environment.UserName);
+            }
+            return companyProperty;
+        }
+
         public void ProcessArguments(string[] args)
         {
+            foreach (var d in args.Select(_ => new LPath(_).GetFullPath()))
+            {
+                Init(d, GuessProduct(Product,d), GuessCompany(Company));
+            }
         }
     }
 }
