@@ -127,15 +127,5 @@
         $(DefineConstants)
       </DefineConstants>
     </PropertyGroup>
-    <!-- copy to stage -->
-    <ItemGroup>
-      <FilesToInstall Include="$(OutDir)/$(ProductName)/bin/**/*" Exclude="$(OutDir)/$(ProductName)/bin/**/*.pdb;$(OutDir)/$(ProductName)/bin/**/*.xml" />
-    </ItemGroup>
-    <RemoveDir Directories="$(StageDirectory)" />
-    <Copy
-      DestinationFolder="$(StageDirectory)\%(RecursiveDir)"
-      SourceFiles="@(FilesToInstall)"
-      UseHardlinksIfPossible="true"
-    />
   </Target>
 </Project>

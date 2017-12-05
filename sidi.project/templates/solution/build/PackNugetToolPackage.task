@@ -54,7 +54,8 @@ using (var w = new StreamWriter(nuspecFile))
 ");	
 	
 }
-Console.WriteLine(nuspecFile);
+
+Log.LogMessage(nuspecFile);
 
 var Quote = new Func<string, string>(s =>
 {
@@ -82,6 +83,100 @@ nuget.Start();
 nuget.WaitForExit();
 PackageFile = Path.Combine(OutputDirectory, Id + "." + Version + ".nupkg");
 Console.WriteLine("Created tool package {0}", PackageFile);
+
+      ]]></Code>  
+    </Task>  
+  </UsingTask>  
+
+  <UsingTask  
+    TaskName="PackNugetToolPackageFromStage"  
+    TaskFactory="CodeTaskFactory"  
+    AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.v12.0.dll" >  
+    <ParameterGroup>  
+      <StageDir Required="true" />
+	  <OutputDir Required="true" />
+	  <Id Required="true" />
+	  <Version Required="true" />
+	  <Company Required="true" />
+	  <PackageFile Output="true" />
+    </ParameterGroup>  
+    <Task>  
+      <Reference Include="System" />
+      <Reference Include="System.Xml" />
+      <Reference Include="System.Xml.Linq" />  
+      <Using Namespace="System.Xml.Linq" />  
+      <Using Namespace="System.Text.RegularExpressions" />  
+      <Code Type="Fragment" Language="cs"><![CDATA[  
+
+var nuspecFile = Path.Combine(OutputDir, "tool.nuspec");
+var Copyright = String.Format("Copyright by {0}", Company);
+
+var Quote = new Func<string, string>(s =>
+{
+	return "\"" + s + "\"";
+});
+
+var EnsureDirectoryExists = new Action<string>(d => 
+{
+	if (!Directory.Exists(d))
+	{
+		Directory.CreateDirectory(d);
+	}
+});
+
+EnsureDirectoryExists(OutputDir);
+
+using (var w = new StreamWriter(nuspecFile))
+{
+	w.WriteLine(@"<?xml version=""1.0""?>
+<package >
+  <metadata>
+    <id>" + Id + @"</id>
+    <version>" + Version + @"</version>
+    <authors>" + Company + @"</authors>
+    <owners>" + Company + @"</owners>
+    <licenseUrl>https://opensource.org/licenses/BSD-3-Clause</licenseUrl>
+    <projectUrl>https://github.com/sidiandi/sidi.project</projectUrl>
+    <iconUrl>https://github.com/sidiandi/sidi.project/icon.ico</iconUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>Tool</description>
+    <releaseNotes></releaseNotes>
+    <copyright>" + Copyright + @"</copyright>
+    <tags></tags>
+    <dependencies>
+    </dependencies>
+  </metadata>
+	<files>
+		<file src=" + Quote(StageDir + @"\**\*") + @" target=""tools"" />
+	</files>
+</package>
+
+");	
+	
+}
+
+var nuget = new System.Diagnostics.Process
+	{
+		StartInfo =  new System.Diagnostics.ProcessStartInfo
+		{
+			FileName = "nuget.exe",
+			Arguments = "pack " + Quote(nuspecFile),
+			CreateNoWindow = true,
+			UseShellExecute = false,
+			WorkingDirectory = OutputDir,
+		}
+	};
+
+nuget.Start();
+nuget.WaitForExit();
+if (nuget.ExitCode != 0)
+{
+	return false;
+}
+
+PackageFile = Path.Combine(OutputDir, Id + "." + Version + ".nupkg");
+Log.LogMessage("Created tool package {0}", PackageFile);
+return true;
 
       ]]></Code>  
     </Task>  

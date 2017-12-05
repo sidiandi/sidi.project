@@ -19,6 +19,7 @@ along with sidi-util. If not, see <http://www.gnu.org/licenses/>.-->
 
   <Import Project="$(BuildDir)\obj\nuget.props" />
   <Import Project="PackNugetToolPackage.task" />
+  <Import Project="CopyToStage.task" />
   
   <PropertyGroup>
     <Configuration>Release</Configuration>
@@ -81,7 +82,7 @@ along with sidi-util. If not, see <http://www.gnu.org/licenses/>.-->
   <Target Name="Setup" DependsOnTargets="Build;BuildSetup">
   </Target>
 
-  <Target Name="BuildSetup" DependsOnTargets="GetVersion">
+  <Target Name="BuildSetup" DependsOnTargets="GetVersion;Stage">
   <MSBuild
         Projects="$(SourceDir)\wix\wix.wixproj" Properties="
           CompanyName=$(CompanyName);
@@ -123,17 +124,24 @@ along with sidi-util. If not, see <http://www.gnu.org/licenses/>.-->
 	<Exec WorkingDirectory="$(ReleaseDir)" Command="&quot;$(Nuget)&quot; pack -Tool &quot;%(Targets.MSBuildSourceProjectFile)&quot; -OutputDirectory &quot;$(PackageDir)&quot; -Version $(GfvNuGetVersion)" />
   </Target>
 
-  <Target Name="PackChocolateyPackages" DependsOnTargets="Build" >
+  <Target Name="Stage" DependsOnTargets="Build" >
+    <PropertyGroup>
+		<StageDir>$(BuildDir)\stage</StageDir>
+	</PropertyGroup>
+	<CopyToStage Source="%(Targets.Identity)" StageDir="$(StageDir)" />
+  </Target>
+
+  <Target Name="PackChocolateyPackage" DependsOnTargets="Stage" >
     <PropertyGroup>
 		<ChocolateyDir>$(BuildDir)\Chocolatey</ChocolateyDir>
 	</PropertyGroup>
-	<PackNugetToolPackage Source="%(Targets.Identity)" OutputDirectory="$(ChocolateyDir)" Version="$(GfvNuGetVersion)" >
+	<PackNugetToolPackageFromStage StageDir="$(StageDir)" OutputDir="$(ChocolateyDir)" Version="$(GfvNuGetVersion)" Id="$(ProductName)" Company="$(CompanyName)" >
       <Output ItemName="ChocolateyPackages" TaskParameter="PackageFile" />
-	</PackNugetToolPackage>
+	</PackNugetToolPackageFromStage>
   </Target>
 
   <!-- Push chocolatey packages to feed -->
-  <Target Name="PushChocolateyPackages" DependsOnTargets="Test;PackChocolateyPackages" >
+  <Target Name="PushChocolateyPackage" DependsOnTargets="Test;PackChocolateyPackage" >
     <Exec WorkingDirectory="$(ReleaseDir)" Command="&quot;$(Nuget)&quot; push &quot;%(ChocolateyPackages.Identity)&quot; -Source $(ChocolateyFeed)" />
   </Target>
 
@@ -170,6 +178,6 @@ along with sidi-util. If not, see <http://www.gnu.org/licenses/>.-->
     <RemoveDir Directories="$(BuildDir)" />
   </Target>
 
-  <Target Name="Release" DependsOnTargets="Test;Setup;Tag;PublishOnDropbox;PublishStageOnDropbox;PushNugetPackages;PushChocolateyPackages" />
+  <Target Name="Release" DependsOnTargets="Test;Setup;PublishOnDropbox;PublishStageOnDropbox;PushNugetPackages;PushChocolateyPackage;Tag" />
   
 </Project>
