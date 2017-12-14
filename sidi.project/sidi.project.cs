@@ -12,7 +12,8 @@ using System.Threading.Tasks;
 
 namespace sidi.project
 {
-    public class Project : IArgumentHandler
+    [Usage("Create new C# projects from templates")]
+    public class Project
     {
         private static readonly log4net.ILog log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -80,7 +81,24 @@ namespace sidi.project
                 { "ProductName", Product },
                 { "CompanyName", Company },
                 { "CopyrightMessage", String.Format("Copyright {0} by {1}", DateTime.Now.Year, Company) },
+                { "LicenseHeader", @"This file is part of _ProductName_.
+
+_ProductName_ is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+_ProductName_ is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with hagen. If not, see <http://www.gnu.org/licenses/>.
+" }
             };
+
+            d["CommentHeader"] = String.Format("{0}\r\n{1}\r\n", d["CopyrightMessage"], d["LicenseHeader"]);
 
             foreach (var k in new[] {
                 "UpgradeCodeGuid",
@@ -101,6 +119,9 @@ namespace sidi.project
             var transform = new DictionaryTransform(d);
 
             transform.CreateFromTemplate(source, destination);
+            destination.Parent.CatDir("packages").EnsureDirectoryExists();
+            Run(destination, @"C:\Program Files (x86)\Microsoft SDKs\Windows\v10.0A\bin\NETFX 4.6.1 Tools\sn.exe", "-k", "key.snk");
+            Run(destination, "nuget", "update", LPath.GetValidFilename(d["ProductName"]) + ".sln");
             Run(destination, "git", "init");
             Run(destination, "git", "add", ".");
             Run(destination, "git", "commit", ".", "-m", "Initial version");
@@ -121,6 +142,10 @@ namespace sidi.project
             };
             p.Start();
             p.WaitForExit();
+            if (p.ExitCode != 0)
+            {
+                throw new Exception(String.Format("exit code {0}: {1} {2}", p.ExitCode, p.StartInfo.FileName, p.StartInfo.Arguments));
+            }
         }
 
         string GuessProduct(string productProperty, LPath dest)
@@ -141,11 +166,12 @@ namespace sidi.project
             return companyProperty;
         }
 
-        public void ProcessArguments(string[] args)
+        [ArgumentHandler]
+        public void ProcessArguments(LPath[] projectRoot)
         {
-            foreach (var d in args.Select(_ => new LPath(_).GetFullPath()))
+            foreach (var r in projectRoot.Select(_ => new LPath(_).GetFullPath()))
             {
-                Init(d, GuessProduct(Product,d), GuessCompany(Company));
+                Init(r, GuessProduct(Product,r), GuessCompany(Company));
             }
         }
     }

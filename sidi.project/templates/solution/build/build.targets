@@ -1,20 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!--Copyright (c) 2014, Andreas Grimme (http://andreas-grimme.gmxhome.de/)
-
-This file is part of sidi-util.
-
-sidi-util is free software: you can redistribute it and/or modify
-it under the terms of the GNU Lesser General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-sidi-util is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-GNU Lesser General Public License for more details.
-
-You should have received a copy of the GNU Lesser General Public License
-along with sidi-util. If not, see <http://www.gnu.org/licenses/>.-->
+<!-- Do not modify. Modify build.props and build.proj to customize the build
+_CommentHeader_
+-->
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
   <Import Project="$(BuildDir)\obj\nuget.props" />
@@ -118,10 +105,11 @@ along with sidi-util. If not, see <http://www.gnu.org/licenses/>.-->
 
   <Target Name="PackNugetPackages" DependsOnTargets="Build" >
     <PropertyGroup>
-		<PackageDir>$(BuildDir)\nuget</PackageDir>
+		<NugetDir>$(BuildDir)\nuget</NugetDir>
 	</PropertyGroup>
-	<MakeDir Directories="$(PackageDir)" />
-	<Exec WorkingDirectory="$(ReleaseDir)" Command="&quot;$(Nuget)&quot; pack -Tool &quot;%(Targets.MSBuildSourceProjectFile)&quot; -OutputDirectory &quot;$(PackageDir)&quot; -Version $(GfvNuGetVersion)" />
+	<PackNugetPackage Project="%(Targets.MSBuildSourceProjectFile)"  OutputDir="$(NugetDir)" >
+      <Output ItemName="NugetPackages" TaskParameter="PackageFile" />
+	</PackNugetPackage>
   </Target>
 
   <Target Name="Stage" DependsOnTargets="Build" >
@@ -141,13 +129,13 @@ along with sidi-util. If not, see <http://www.gnu.org/licenses/>.-->
   </Target>
 
   <!-- Push chocolatey packages to feed -->
-  <Target Name="PushChocolateyPackage" DependsOnTargets="Test;PackChocolateyPackage" >
-    <Exec WorkingDirectory="$(ReleaseDir)" Command="&quot;$(Nuget)&quot; push &quot;%(ChocolateyPackages.Identity)&quot; -Source $(ChocolateyFeed)" />
+  <Target Name="PushChocolateyPackage" DependsOnTargets="PackChocolateyPackage" >
+    <Exec WorkingDirectory="$(ReleaseDir)" Command="&quot;$(Nuget)&quot; push &quot;%(ChocolateyPackages.Identity)&quot; -ApiKey &quot;$(ChocolateyFeedApiKey)&quot; -Source &quot;$(ChocolateyFeed)&quot;" />
   </Target>
 
   <!-- Push nuget packages to feed -->
-  <Target Name="PushNugetPackages" DependsOnTargets="Test;PackNugetPackages" >
-    <Exec Condition="'@(PackageFiles)' != ''" WorkingDirectory="$(ReleaseDir)" Command="&quot;$(Nuget)&quot; push &quot;%(PackageFiles.Identity)&quot; -ApiKey $(NugetApiKey) -Source $(NugetFeed)" />
+  <Target Name="PushNugetPackages" DependsOnTargets="PackNugetPackages" >
+    <Exec Condition="'@(NugetPackages)' != ''" WorkingDirectory="$(ReleaseDir)" Command="&quot;$(Nuget)&quot; push &quot;%(NugetPackages.Identity)&quot; -ApiKey &quot;$(NugetFeedApiKey)&quot; -Source &quot;$(NugetFeed)&quot;" />
   </Target>
 
   <Target Name="Install" DependsOnTargets="Setup">
@@ -158,7 +146,7 @@ along with sidi-util. If not, see <http://www.gnu.org/licenses/>.-->
     <Copy SourceFiles="@(SetupFiles)" DestinationFolder="$(USERPROFILE)\Dropbox\app\$(ProductName)" />
   </Target>
   
-  <Target Name="PublishStageOnDropbox" DependsOnTargets="Setup" >
+  <Target Name="PublishStageOnDropbox" DependsOnTargets="Stage" >
     <ItemGroup>
 		<StageFiles Include="$(StageDir)/**/*" />
 	</ItemGroup>

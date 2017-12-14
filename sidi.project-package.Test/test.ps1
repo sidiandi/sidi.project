@@ -18,11 +18,18 @@ $testDir = "out\Release\test\end-to-end-test"
 EnsureCdEmptyDirectory $testDir
 
 nuget install -OutputDirectory tool -Verbosity detailed -Source $chocolateySource sidi.project
+if ($LASTEXITCODE) { throw }
+
 $toolDir = Get-Item tool\sidi.project.*
 
 $product="FooBarTest"
 $exe = $toolDir.FullName + "\tools\sidi.project.exe"
-start-process $exe "-vvvv $product" -wait -NoNewWindow
+$p = start-process $exe "-vvvv $product" -PassThru -NoNewWindow -wait
+if ($p.ExitCode -ne 0)
+{
+	throw
+}
+
 cd $product
 .\build.cmd
 exit

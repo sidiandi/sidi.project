@@ -1,4 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- 
+_CommentHeader_
+-->
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
   <UsingTask  
@@ -174,6 +177,68 @@ if (nuget.ExitCode != 0)
 	return false;
 }
 
+PackageFile = Path.Combine(OutputDir, Id + "." + Version + ".nupkg");
+Log.LogMessage("Created tool package {0}", PackageFile);
+return true;
+
+      ]]></Code>  
+    </Task>  
+  </UsingTask>  
+
+  <UsingTask  
+    TaskName="PackNugetPackage"  
+    TaskFactory="CodeTaskFactory"  
+    AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.v12.0.dll" >  
+    <ParameterGroup>  
+      <Project Required="true" />
+	  <OutputDir Required="true" />
+	  <PackageFile Output="true" />
+    </ParameterGroup>  
+    <Task>  
+      <Reference Include="System" />
+      <Reference Include="System.Xml" />
+      <Reference Include="System.Xml.Linq" />  
+      <Using Namespace="System.Xml.Linq" />  
+      <Using Namespace="System.Text.RegularExpressions" />  
+      <Code Type="Fragment" Language="cs"><![CDATA[  
+
+
+var EnsureDirectoryExists = new Action<string>(d => 
+{
+	if (!Directory.Exists(d))
+	{
+		Directory.CreateDirectory(d);
+	}
+});
+
+var Quote = new Func<string, string>(s =>
+{
+	return "\"" + s + "\"";
+});
+
+EnsureDirectoryExists(OutputDir);
+
+var nuget = new System.Diagnostics.Process
+{
+	StartInfo =  new System.Diagnostics.ProcessStartInfo
+	{
+		FileName = "nuget.exe",
+		Arguments = "pack " + Quote(Project),
+		CreateNoWindow = true,
+		UseShellExecute = false,
+		WorkingDirectory = OutputDir,
+	}
+};
+
+nuget.Start();
+nuget.WaitForExit();
+if (nuget.ExitCode != 0)
+{
+	return false;
+}
+
+var Id = Path.GetFileNameWithoutExtension(Project);
+var Version = "0.0.0";
 PackageFile = Path.Combine(OutputDir, Id + "." + Version + ".nupkg");
 Log.LogMessage("Created tool package {0}", PackageFile);
 return true;

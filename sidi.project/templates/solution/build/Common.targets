@@ -1,4 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- 
+_CommentHeader_
+-->
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 	<ItemGroup>
 		<TestFiles Include="test-data\**\*" />
@@ -14,5 +17,4 @@
 		UseHardlinksIfPossible="true"
 	/>
   </Target>
-
 </Project>

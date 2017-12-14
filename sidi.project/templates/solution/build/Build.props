@@ -1,27 +1,26 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<!--Copyright (c) 2014, Andreas Grimme (http://andreas-grimme.gmxhome.de/) -->
+<!-- 
+_CommentHeader_
+-->
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
   <PropertyGroup>
     <CompanyName>_CompanyName_</CompanyName>
     <ProductName>_ProductName_</ProductName>
     <UpgradeCode>_UpgradeCodeGuid_</UpgradeCode>
   </PropertyGroup>
   
-  <ItemGroup>
-    <!-- <Package Include="projectName" /> -->
-  </ItemGroup>
-  
   <PropertyGroup>
-	<ChocolateyFeed>C:\Users\andreas\Dropbox\Chocolatey</ChocolateyFeed>
-    <GITHUB_REPO>$(ProductName)</GITHUB_REPO>
+    <NugetFeed>$(UserProfile)\Dropbox\nuget</NugetFeed>
+	<ChocolateyFeed>$(UserProfile)\Dropbox\Chocolatey</ChocolateyFeed>
+    <GITHUB_REPO>_https://github.com/_CompanyName_/_ProductName_</GITHUB_REPO>
   </PropertyGroup>
 
-  <!-- define secret project properties in a private .props file. See build/api_key_example.props for an example -->
+  <!-- define secret project properties in a private .props file. See _ProductName_-secrets.props for a template -->
   <PropertyGroup Condition="$(SECRET_PROPS) == ''">
-    <SECRET_PROPS>$(HOMEPATH)\Documents\$(ProductName)-secrets.props</SECRET_PROPS>
+    <SECRET_PROPS>$(UserProfile)\$(ProductName)-secrets.props</SECRET_PROPS>
   </PropertyGroup>
-
-  <!-- Only import the secret props file if it exists and if the secrets are not available as environment variables. -->
-  <Import Project="$(SECRET_PROPS)" Condition="Exists('$(SECRET_PROPS)') and $(GITHUB_TOKEN) == ''" />
+  <!-- Only import the secret props file if it exists -->
+  <Import Project="$(SECRET_PROPS)" Condition="Exists('$(SECRET_PROPS)')" />
   
 </Project>
