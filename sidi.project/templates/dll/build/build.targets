@@ -1,24 +1,28 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!--Copyright (c) 2014, Andreas Grimme (http://andreas-grimme.gmxhome.de/)
+<!-- Do not modify. Modify build.props and build.proj to customize the build
+Copyright 2018 by andreas
+This file is part of _ProductName_.
 
-This file is part of sidi-util.
-
-sidi-util is free software: you can redistribute it and/or modify
-it under the terms of the GNU Lesser General Public License as published by
+_ProductName_ is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
-sidi-util is distributed in the hope that it will be useful,
+_ProductName_ is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-GNU Lesser General Public License for more details.
+GNU General Public License for more details.
 
-You should have received a copy of the GNU Lesser General Public License
-along with sidi-util. If not, see <http://www.gnu.org/licenses/>.-->
+You should have received a copy of the GNU General Public License
+along with hagen. If not, see <http://www.gnu.org/licenses/>.
+
+
+-->
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
-  <Import Project="$(BuildDir)\nuget.props" />
+  <Import Project="$(BuildDir)\obj\nuget.props" />
   <Import Project="PackNugetToolPackage.task" />
+  <Import Project="CopyToStage.task" />
   
   <PropertyGroup>
     <Configuration>Release</Configuration>
@@ -35,14 +39,14 @@ along with sidi-util. If not, see <http://www.gnu.org/licenses/>.-->
   
   <!-- Tools -->
 	<PropertyGroup>
-		<NUnitConsole>$(Nuget_NUnit_ConsoleRunner_ToolsDirectory)\nunit3-console.exe</NUnitConsole>
+		<NUnitConsole>$(NugetPackagesDir)\NUnit.ConsoleRunner.$(NugetPackageVersion_NUnit_ConsoleRunner)\tools\nunit3-console.exe</NUnitConsole>
 		<Nuget>NuGet.exe</Nuget>
 		<Git>git</Git>
     <GithubRelease>github-release.exe</GithubRelease>
     <GithubReleaseEnvironmentVariables>GITHUB_TOKEN=$(GITHUB_TOKEN);GITHUB_USER=$(GITHUB_USER);GITHUB_REPO=$(GITHUB_REPO)</GithubReleaseEnvironmentVariables>
   </PropertyGroup>
 
-  <Import Project="$(Nuget_GitVersionTask_Directory)\Build\GitVersionTask.targets" />
+  <Import Project="$(NugetPackagesDir)\GitVersionTask.$(NugetPackageVersion_GitVersionTask)\Build\GitVersionTask.targets" />
   
   <Target Name="GetVersion">
 		<GetVersion SolutionDirectory="$(SolutionDir)">
@@ -81,7 +85,7 @@ along with sidi-util. If not, see <http://www.gnu.org/licenses/>.-->
   <Target Name="Setup" DependsOnTargets="Build;BuildSetup">
   </Target>
 
-  <Target Name="BuildSetup" DependsOnTargets="GetVersion">
+  <Target Name="BuildSetup" DependsOnTargets="GetVersion;Stage">
   <MSBuild
         Projects="$(SourceDir)\wix\wix.wixproj" Properties="
           CompanyName=$(CompanyName);
@@ -110,36 +114,44 @@ along with sidi-util. If not, see <http://www.gnu.org/licenses/>.-->
 
   <Target Name="Test" DependsOnTargets="Build">
     <ItemGroup>
-      <TestTargets Include="%(Targets.Identity)" Condition="$([System.Text.RegularExpressions.Regex]::IsMatch(%(Filename), 'Test'))"/>
+      <TestTargets Include="%(Targets.Identity)" Condition="$([System.Text.RegularExpressions.Regex]::IsMatch(%(Filename), '\.Test$'))"/>
     </ItemGroup>
     <Exec Command="&quot;$(NUnitConsole)&quot; --labels=On --work=&quot;$(TestDir)&quot; --result=&quot;$(TestDir)\TestResult.xml&quot; --labels=All @(TestTargets -> '&quot;%(Identity)&quot;', ' ')" />
   </Target>
 
   <Target Name="PackNugetPackages" DependsOnTargets="Build" >
     <PropertyGroup>
-		<PackageDir>$(BuildDir)\nuget</PackageDir>
+		<NugetDir>$(BuildDir)\nuget</NugetDir>
 	</PropertyGroup>
-	<MakeDir Directories="$(PackageDir)" />
-	<Exec WorkingDirectory="$(ReleaseDir)" Command="&quot;$(Nuget)&quot; pack &quot;%(Targets.MSBuildSourceProjectFile)&quot; -OutputDirectory &quot;$(PackageDir)&quot; -Version $(GfvNuGetVersion)" />
+	<PackNugetPackage Project="%(Targets.MSBuildSourceProjectFile)"  OutputDir="$(NugetDir)" >
+      <Output ItemName="NugetPackages" TaskParameter="PackageFile" />
+	</PackNugetPackage>
   </Target>
 
-  <Target Name="PackChocolateyPackages" DependsOnTargets="Build" >
+  <Target Name="Stage" DependsOnTargets="Build" >
+    <PropertyGroup>
+		<StageDir>$(BuildDir)\stage</StageDir>
+	</PropertyGroup>
+	<CopyToStage Source="%(Targets.Identity)" StageDir="$(StageDir)" />
+  </Target>
+
+  <Target Name="PackChocolateyPackage" DependsOnTargets="Stage" >
     <PropertyGroup>
 		<ChocolateyDir>$(BuildDir)\Chocolatey</ChocolateyDir>
 	</PropertyGroup>
-	<PackNugetToolPackage Source="%(Targets.Identity)" OutputDirectory="$(ChocolateyDir)" Version="$(GfvNuGetVersion)" >
+	<PackNugetToolPackageFromStage StageDir="$(StageDir)" OutputDir="$(ChocolateyDir)" Version="$(GfvNuGetVersion)" Id="$(ProductName)" Company="$(CompanyName)" >
       <Output ItemName="ChocolateyPackages" TaskParameter="PackageFile" />
-	</PackNugetToolPackage>
+	</PackNugetToolPackageFromStage>
   </Target>
 
   <!-- Push chocolatey packages to feed -->
-  <Target Name="PushChocolateyPackages" DependsOnTargets="Test;PackChocolateyPackages" >
-    <Exec WorkingDirectory="$(ReleaseDir)" Command="&quot;$(Nuget)&quot; push &quot;%(ChocolateyPackages.Identity)&quot; -Source $(ChocolateyFeed)" />
+  <Target Name="PushChocolateyPackage" DependsOnTargets="PackChocolateyPackage" >
+    <Exec WorkingDirectory="$(ReleaseDir)" Command="&quot;$(Nuget)&quot; push &quot;%(ChocolateyPackages.Identity)&quot; -ApiKey &quot;$(ChocolateyFeedApiKey)&quot; -Source &quot;$(ChocolateyFeed)&quot;" />
   </Target>
 
   <!-- Push nuget packages to feed -->
-  <Target Name="PushNugetPackages" DependsOnTargets="Test;PackNugetPackages" >
-    <Exec Condition="'@(PackageFiles)' != ''" WorkingDirectory="$(ReleaseDir)" Command="&quot;$(Nuget)&quot; push &quot;%(PackageFiles.Identity)&quot; -ApiKey $(NugetApiKey) -Source $(NugetFeed)" />
+  <Target Name="PushNugetPackages" DependsOnTargets="PackNugetPackages" >
+    <Exec Condition="'@(NugetPackages)' != ''" WorkingDirectory="$(ReleaseDir)" Command="&quot;$(Nuget)&quot; push &quot;%(NugetPackages.Identity)&quot; -ApiKey &quot;$(NugetFeedApiKey)&quot; -Source &quot;$(NugetFeed)&quot;" />
   </Target>
 
   <Target Name="Install" DependsOnTargets="Setup">
@@ -150,7 +162,7 @@ along with sidi-util. If not, see <http://www.gnu.org/licenses/>.-->
     <Copy SourceFiles="@(SetupFiles)" DestinationFolder="$(USERPROFILE)\Dropbox\app\$(ProductName)" />
   </Target>
   
-  <Target Name="PublishStageOnDropbox" DependsOnTargets="Setup" >
+  <Target Name="PublishStageOnDropbox" DependsOnTargets="Stage" >
     <ItemGroup>
 		<StageFiles Include="$(StageDir)/**/*" />
 	</ItemGroup>
@@ -170,6 +182,6 @@ along with sidi-util. If not, see <http://www.gnu.org/licenses/>.-->
     <RemoveDir Directories="$(BuildDir)" />
   </Target>
 
-  <Target Name="Release" DependsOnTargets="Test;Setup;Tag;PublishOnDropbox;PublishStageOnDropbox;PushNugetPackages;PushChocolateyPackages" />
+  <Target Name="Release" DependsOnTargets="Test;Setup;PublishOnDropbox;PublishStageOnDropbox;PushNugetPackages;PushChocolateyPackage;Tag" />
   
 </Project>

@@ -1,6 +1,6 @@
 ﻿using Microsoft.VisualStudio.TextTemplating;
 using Sidi;
-using Sidi.CommandLine;
+using Sidi.GetOpt;
 using Sidi.Extensions;
 using Sidi.IO;
 using System;
@@ -9,10 +9,11 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.ComponentModel;
 
 namespace sidi.project
 {
-    [Usage("Create new C# projects from templates")]
+    [Description("Create new C# projects from templates")]
     public class Project
     {
         private static readonly log4net.ILog log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
@@ -22,7 +23,7 @@ namespace sidi.project
             return GetOpt.Run(new Project(), args);
         }
 
-        [Usage("Specify the project directory. Default is .")]
+        [Description("Specify the project directory. Default is .")]
         public LPath ProjectDirectory
         {
             get
@@ -40,10 +41,10 @@ namespace sidi.project
             }
         }
 
-        [Usage("Specify the product name. ")]
+        [Description("Specify the product name. ")]
         public string Product { get; set; }
 
-        [Usage("Specify the company.")]
+        [Description("Specify the company.")]
         public string Company { get; set; }
 
         LPath _ProjectDirectory;
@@ -65,7 +66,7 @@ namespace sidi.project
                 throw new ArgumentNullException(nameof(Company));
             }
 
-            var source = Paths.BinDir.CatDir("templates", "solution");
+            var source = Paths.BinDir.CatDir("templates", "dll");
 
             log.InfoFormat("Create project from template {0} in {1}", source, destination);
 
@@ -78,6 +79,7 @@ namespace sidi.project
 
             var d = new Dictionary<string, string>
             {
+                { "ProductName", Product },
                 { "ProductName", Product },
                 { "CompanyName", Company },
                 { "CopyrightMessage", String.Format("Copyright {0} by {1}", DateTime.Now.Year, Company) },
@@ -166,8 +168,8 @@ along with hagen. If not, see <http://www.gnu.org/licenses/>.
             return companyProperty;
         }
 
-        [ArgumentHandler]
-        public void ProcessArguments(LPath[] projectRoot)
+        [Description("Create new C# projects from templates")]
+        public void CreateProject(LPath[] projectRoot)
         {
             foreach (var r in projectRoot.Select(_ => new LPath(_).GetFullPath()))
             {

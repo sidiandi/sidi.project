@@ -2,9 +2,9 @@
 # Visual Studio 15
 VisualStudioVersion = 15.0.27004.2005
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "_ProjectName_", "_ProjectName_\_ProjectName_.csproj", "{_SolutionProjectGuid_}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "_ProductName_", "_ProductName_\_ProductName_.csproj", "{_SolutionProjectGuid_}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "_TestProjectName_", "_TestProjectName_\_TestProjectName_.csproj", "{_SolutionTestProjectGuid_}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "_ProductName_.Test", "_ProductName_.Test\_ProductName_.Test.csproj", "{_SolutionTestProjectGuid_}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

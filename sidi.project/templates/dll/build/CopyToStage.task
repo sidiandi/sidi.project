@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 
+Copyright 2018 by andreas
+This file is part of _ProductName_.
+
+_ProductName_ is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+_ProductName_ is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with hagen. If not, see <http://www.gnu.org/licenses/>.
+
+
+-->
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <UsingTask  
+    TaskName="CopyToStage"  
+    TaskFactory="CodeTaskFactory"  
+    AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.v12.0.dll" >  
+    <ParameterGroup>  
+      <Source Required="true" />
+	  <StageDir Required="true" />
+    </ParameterGroup>  
+    <Task>  
+      <Reference Include="System" />
+      <Reference Include="System.Xml" />
+      <Reference Include="System.Xml.Linq" />  
+      <Using Namespace="System.Xml.Linq" />  
+      <Using Namespace="System.Text.RegularExpressions" />  
+      <Code Type="Fragment" Language="cs"><![CDATA[  
+      
+		Action<string> EnsureParentDirectoryExists = (p) =>
+		{
+			var d = Path.GetDirectoryName(p);
+			if (!Directory.Exists(d))
+			{
+				Directory.CreateDirectory(d);
+			}
+		};
+	  
+	  Action<string, string, string, string> DirectoryCopy = null;
+
+	  DirectoryCopy = (string sourceDirName, string destDirName, string compareDirName, string relative) =>
+	  {
+		var s = Path.Combine(sourceDirName, relative);
+		var c = Path.Combine(compareDirName, relative);
+		var d = Path.Combine(destDirName, relative);
+		
+		if (File.Exists(s))
+		{
+			if (string.Equals(Path.GetExtension(s), ".pdb") || string.Equals(Path.GetExtension(s), ".xml"))
+			{
+				Log.LogMessage("skip {0} -> {1} because it is a build output", s, d);
+				return;
+			}
+		
+			if (File.Exists(c))
+			{
+				Log.LogMessage("skip {0} -> {1} because {2} exists.", s, d, c);
+				return;
+			}
+
+			EnsureParentDirectoryExists(d);
+			Log.LogMessage("{0} -> {1}", s, d);
+			File.Copy(s, d);
+		}
+		else if (Directory.Exists(s))
+		{
+			foreach (var i in new DirectoryInfo(s).GetFileSystemInfos())
+			{
+				DirectoryCopy(sourceDirName, destDirName, compareDirName, Path.Combine(relative, i.Name));
+			}
+		}
+	 };
+	
+	 if (string.Equals(Path.GetExtension(Source), ".exe"))
+	 {
+		DirectoryCopy(Path.GetDirectoryName(Source), StageDir, StageDir, ".");
+	 }
+  
+      ]]></Code>   
+    </Task>  
+  </UsingTask>  
+
+</Project>

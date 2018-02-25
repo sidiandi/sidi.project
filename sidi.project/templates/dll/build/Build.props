@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 
+Copyright 2018 by _Company_
+This file is part of _ProductName_.
+
+_ProductName_ is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+_ProductName_ is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with hagen. If not, see <http://www.gnu.org/licenses/>.
+
+
+-->
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <PropertyGroup>
+    <CompanyName>_Company_</CompanyName>
+    <ProductName>_ProductName_</ProductName>
+    <UpgradeCode>_UpgradeCode_</UpgradeCode>
+  </PropertyGroup>
+  
+  <PropertyGroup>
+    <NugetFeed>$(UserProfile)\Dropbox\nuget</NugetFeed>
+	<ChocolateyFeed>$(UserProfile)\Dropbox\Chocolatey</ChocolateyFeed>
+    <GITHUB_REPO>_https://github.com/_CompanyName_/_ProjectName_</GITHUB_REPO>
+  </PropertyGroup>
+
+  <!-- define secret project properties in a private .props file. See FooBarTest-secrets.props for a template -->
+  <PropertyGroup Condition="$(SECRET_PROPS) == ''">
+    <SECRET_PROPS>$(UserProfile)\$(ProductName)-secrets.props</SECRET_PROPS>
+  </PropertyGroup>
+  <!-- Only import the secret props file if it exists -->
+  <Import Project="$(SECRET_PROPS)" Condition="Exists('$(SECRET_PROPS)')" />
+  
+</Project>

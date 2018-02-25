@@ -30,7 +30,7 @@ _CommentHeader_
     <GithubReleaseEnvironmentVariables>GITHUB_TOKEN=$(GITHUB_TOKEN);GITHUB_USER=$(GITHUB_USER);GITHUB_REPO=$(GITHUB_REPO)</GithubReleaseEnvironmentVariables>
   </PropertyGroup>
 
-  <Import Project="$(NugetPackagesDir)\GitVersionTask.$(NugetPackageVersion_GitVersionTask)\Build\portable-net+sl+win+wpa+wp\GitVersionTask.targets" />
+  <Import Project="$(NugetPackagesDir)\GitVersionTask.$(NugetPackageVersion_GitVersionTask)\Build\GitVersionTask.targets" />
   
   <Target Name="GetVersion">
 		<GetVersion SolutionDirectory="$(SolutionDir)">
