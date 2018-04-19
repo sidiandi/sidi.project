@@ -39,7 +39,7 @@ namespace Sidi
 
         public static void CreateFromTemplate(this ITextTransform transform, LPath source, LPath destination)
         {
-            Console.WriteLine("{0} -> {1}", source, destination);
+            // Console.WriteLine("{0} -> {1}", source, destination);
 
             if (source.IsFile)
             {

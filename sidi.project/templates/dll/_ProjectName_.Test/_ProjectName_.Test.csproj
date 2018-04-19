@@ -33,13 +33,13 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="FooBarTestTest.cs" />
+    <Compile Include="_ProjectName_Test.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\FooBarTest\FooBarTest.csproj">
-      <Project>{d45b4771-f07f-462c-9023-f64000b52cf9}</Project>
-      <Name>FooBarTest</Name>
+    <ProjectReference Include="..\_ProjectName_\_ProjectName_.csproj">
+      <Project>{_SolutionProjectGuid_}</Project>
+      <Name>_ProjectName_</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

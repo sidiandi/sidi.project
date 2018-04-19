@@ -24,6 +24,7 @@ $toolDir = Get-Item tool\sidi.project.*
 
 $product="FooBarTest"
 $exe = $toolDir.FullName + "\tools\sidi.project.exe"
+$exe
 $p = start-process $exe "-vvvv $product" -PassThru -NoNewWindow -wait
 if ($p.ExitCode -ne 0)
 {

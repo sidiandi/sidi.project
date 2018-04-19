@@ -23,7 +23,7 @@ along with hagen. If not, see <http://www.gnu.org/licenses/>.
   <PropertyGroup>
     <CompanyName>_Company_</CompanyName>
     <ProductName>_ProductName_</ProductName>
-    <UpgradeCode>_UpgradeCode_</UpgradeCode>
+    <UpgradeCode>_UpgradeCodeGuid_</UpgradeCode>
   </PropertyGroup>
   
   <PropertyGroup>
@@ -32,7 +32,7 @@ along with hagen. If not, see <http://www.gnu.org/licenses/>.
     <GITHUB_REPO>_https://github.com/_CompanyName_/_ProjectName_</GITHUB_REPO>
   </PropertyGroup>
 
-  <!-- define secret project properties in a private .props file. See FooBarTest-secrets.props for a template -->
+  <!-- define secret project properties in a private .props file. See _ProductName_-secrets.props for a template -->
   <PropertyGroup Condition="$(SECRET_PROPS) == ''">
     <SECRET_PROPS>$(UserProfile)\$(ProductName)-secrets.props</SECRET_PROPS>
   </PropertyGroup>

@@ -15,7 +15,7 @@ namespace sidi.project
 
         public string Transform(string input)
         {
-            return Regex.Replace(input, @"_(\w+)_", new MatchEvaluator((m) =>
+            return Regex.Replace(input, @"(\w+)", new MatchEvaluator((m) =>
             {
                 if (dictionary.TryGetValue(m.Groups[1].Value, out var r))
                 {

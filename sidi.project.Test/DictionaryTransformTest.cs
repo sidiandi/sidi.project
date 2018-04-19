@@ -2,7 +2,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace sidi.project
+namespace sidi.project.Test
 {
     [TestFixture]
     public class DictionaryTransformTest

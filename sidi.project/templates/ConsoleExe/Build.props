@@ -1,0 +1,11 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!-- CopyrightMessagePlaceholder -->
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <CompanyName>CompanyNamePlaceHolder</CompanyName>
+    <ProductName>ProductNamePlaceHolder</ProductName>
+    <!-- <PushNugetSource>https://api.nuget.org/v3/index.json</PushNugetSource> -->
+    <!-- <PushChocolateySource></PushChocolateySource> -->
+    <!-- <GITHUB_REPO>$(ProductName)</GITHUB_REPO> -->
+  </PropertyGroup>
+</Project>
