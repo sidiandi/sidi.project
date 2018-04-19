@@ -1,0 +1,12 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!--Copyright (c) 2018, https://github.com/sidiandi -->
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <CompanyName>sidiandi</CompanyName>
+    <ProductName>sidi.project</ProductName>
+    <UpgradeCode>57CAC978-D1D8-4375-A93F-E906E4E66D60</UpgradeCode>
+    <!-- <PushNugetSource>https://api.nuget.org/v3/index.json</PushNugetSource> -->
+    <!-- <PushChocolateySource></PushChocolateySource> -->
+    <GITHUB_REPO>$(ProductName)</GITHUB_REPO>
+  </PropertyGroup>
+</Project>
